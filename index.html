@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Expiry Date Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- Notification Banner -->
+  <div id="notification-banner" class="notification-banner hidden">
+    <span id="notification-text"></span>
+    <button onclick="closeBanner()" class="banner-close">&times;</button>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🥦</span>
+        <div>
+          <h1>Smart Expiry Tracker</h1>
+          <p>Track food freshness, reduce waste</p>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="stat-pill" id="stat-total">
+          <span class="stat-num" id="count-total">0</span>
+          <span class="stat-label">Total Items</span>
+        </div>
+        <div class="stat-pill warning" id="stat-expiring">
+          <span class="stat-num" id="count-expiring">0</span>
+          <span class="stat-label">Expiring Soon</span>
+        </div>
+        <div class="stat-pill danger" id="stat-expired">
+          <span class="stat-num" id="count-expired">0</span>
+          <span class="stat-label">Expired</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Tabs -->
+  <nav class="page-tabs">
+    <button class="page-tab active" data-page="tracker" onclick="switchPage('tracker')">🥦 Food Tracker</button>
+    <button class="page-tab" data-page="groceries" onclick="switchPage('groceries')">🛒 Grocery List <span id="grocery-badge" class="grocery-badge hidden">0</span></button>
+  </nav>
+
+  <!-- Main Layout -->
+  <main class="main-container" id="page-tracker">
+
+    <!-- Left Panel: Add Item + Filters -->
+    <aside class="sidebar">
+
+      <!-- Add Food Item Form -->
+      <section class="card" id="add-item-card">
+        <h2 class="card-title">➕ Add Food Item</h2>
+        <form id="add-form" autocomplete="off">
+          <div class="form-group">
+            <label for="food-name">Food Name *</label>
+            <input type="text" id="food-name" placeholder="e.g. Milk, Bread, Apples" required />
+          </div>
+          <div class="form-group">
+            <label for="food-category">Category *</label>
+            <select id="food-category" required>
+              <option value="">Select category...</option>
+              <option value="dairy">🥛 Dairy</option>
+              <option value="meat">🥩 Meat & Poultry</option>
+              <option value="seafood">🐟 Seafood</option>
+              <option value="vegetables">🥦 Vegetables</option>
+              <option value="fruits">🍎 Fruits</option>
+              <option value="grains">🌾 Grains & Bread</option>
+              <option value="beverages">🧃 Beverages</option>
+              <option value="condiments">🫙 Condiments & Sauces</option>
+              <option value="snacks">🍿 Snacks</option>
+              <option value="frozen">🧊 Frozen Foods</option>
+              <option value="leftovers">🍱 Leftovers</option>
+              <option value="other">📦 Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="food-quantity">Quantity</label>
+            <div class="input-row">
+              <input type="number" id="food-quantity" placeholder="1" min="0.1" step="0.1" value="1" />
+              <select id="food-unit">
+                <option value="pcs">pcs</option>
+                <option value="kg">kg</option>
+                <option value="g">g</option>
+                <option value="L">L</option>
+                <option value="ml">ml</option>
+                <option value="pack">pack</option>
+                <option value="box">box</option>
+                <option value="bottle">bottle</option>
+                <option value="can">can</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="food-expiry">Expiry Date *</label>
+            <input type="date" id="food-expiry" required />
+          </div>
+          <div class="form-group">
+            <label for="food-storage">Storage Location</label>
+            <select id="food-storage">
+              <option value="fridge">🧊 Fridge</option>
+              <option value="freezer">❄️ Freezer</option>
+              <option value="pantry">🗄️ Pantry</option>
+              <option value="counter">🍽️ Counter</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="food-notes">Notes</label>
+            <input type="text" id="food-notes" placeholder="Opened, leftover, etc." />
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Add to Tracker</button>
+        </form>
+      </section>
+
+      <!-- Filters & Search -->
+      <section class="card" id="filter-card">
+        <h2 class="card-title">🔍 Search & Filter</h2>
+        <input type="text" id="search-input" placeholder="Search items..." class="search-box" />
+        <div class="filter-group">
+          <label>Status</label>
+          <div class="filter-pills">
+            <button class="filter-pill active" data-filter="all">All</button>
+            <button class="filter-pill" data-filter="fresh">Fresh</button>
+            <button class="filter-pill" data-filter="expiring">Expiring Soon</button>
+            <button class="filter-pill" data-filter="expired">Expired</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <label>Category</label>
+          <select id="category-filter">
+            <option value="all">All Categories</option>
+            <option value="dairy">🥛 Dairy</option>
+            <option value="meat">🥩 Meat & Poultry</option>
+            <option value="seafood">🐟 Seafood</option>
+            <option value="vegetables">🥦 Vegetables</option>
+            <option value="fruits">🍎 Fruits</option>
+            <option value="grains">🌾 Grains & Bread</option>
+            <option value="beverages">🧃 Beverages</option>
+            <option value="condiments">🫙 Condiments</option>
+            <option value="snacks">🍿 Snacks</option>
+            <option value="frozen">🧊 Frozen</option>
+            <option value="leftovers">🍱 Leftovers</option>
+            <option value="other">📦 Other</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Sort By</label>
+          <select id="sort-filter">
+            <option value="expiry-asc">Expiry Date (Soonest)</option>
+            <option value="expiry-desc">Expiry Date (Latest)</option>
+            <option value="name-asc">Name (A–Z)</option>
+            <option value="name-desc">Name (Z–A)</option>
+            <option value="added-desc">Recently Added</option>
+          </select>
+        </div>
+        <button class="btn btn-outline btn-full" onclick="clearAllItems()">🗑️ Clear All Items</button>
+      </section>
+
+    </aside>
+
+    <!-- Center: Food Items List -->
+    <section class="items-panel">
+      <div class="items-header">
+        <h2>Your Food Inventory</h2>
+        <span id="items-count-label" class="items-count-label">0 items</span>
+      </div>
+      <div id="items-container" class="items-container">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">🛒</div>
+          <h3>No items yet</h3>
+          <p>Add your first food item using the form on the left to start tracking expiry dates.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Panel: Recommendations -->
+    <aside class="recommendations-panel">
+
+      <!-- Expiry Alerts -->
+      <section class="card" id="alerts-card">
+        <h2 class="card-title">🔔 Expiry Alerts</h2>
+        <div id="alerts-container">
+          <p class="muted-text">No alerts right now. All fresh! ✅</p>
+        </div>
+      </section>
+
+      <!-- Food Recommendations -->
+      <section class="card" id="recommendations-card">
+        <h2 class="card-title">👨‍🍳 Use It Up! Recipes</h2>
+        <p class="muted-text" id="rec-subtitle">Recipes based on what's expiring soon</p>
+        <div id="recommendations-container">
+          <p class="muted-text">Add items to see recipe suggestions.</p>
+        </div>
+      </section>
+
+      <!-- Shopping List Tips -->
+      <section class="card" id="tips-card">
+        <h2 class="card-title">💡 Smart Tips</h2>
+        <div id="tips-container">
+          <p class="muted-text">Track items to get personalized storage and freshness tips.</p>
+        </div>
+      </section>
+
+    </aside>
+
+  </main>
+
+  <!-- ══════════════ GROCERY LIST PAGE ══════════════ -->
+  <main class="main-container grocery-page hidden" id="page-groceries">
+
+    <!-- Left: Add Grocery Item -->
+    <aside class="sidebar">
+      <section class="card">
+        <h2 class="card-title">➕ Add Grocery Item</h2>
+        <form id="grocery-add-form" autocomplete="off">
+          <div class="form-group">
+            <label for="grocery-name">Item Name *</label>
+            <input type="text" id="grocery-name" placeholder="e.g. Milk, Eggs, Bread" required />
+          </div>
+          <div class="form-group">
+            <label for="grocery-category">Category</label>
+            <select id="grocery-category">
+              <option value="dairy">🥛 Dairy</option>
+              <option value="meat">🥩 Meat & Poultry</option>
+              <option value="seafood">🐟 Seafood</option>
+              <option value="vegetables">🥦 Vegetables</option>
+              <option value="fruits">🍎 Fruits</option>
+              <option value="grains">🌾 Grains & Bread</option>
+              <option value="beverages">🧃 Beverages</option>
+              <option value="condiments">🫙 Condiments</option>
+              <option value="snacks">🍿 Snacks</option>
+              <option value="frozen">🧊 Frozen Foods</option>
+              <option value="other">📦 Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Quantity</label>
+            <div class="input-row">
+              <input type="number" id="grocery-quantity" placeholder="1" min="1" step="1" value="1" />
+              <select id="grocery-unit">
+                <option value="pcs">pcs</option>
+                <option value="kg">kg</option>
+                <option value="g">g</option>
+                <option value="L">L</option>
+                <option value="ml">ml</option>
+                <option value="pack">pack</option>
+                <option value="box">box</option>
+                <option value="bottle">bottle</option>
+                <option value="can">can</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="grocery-notes">Notes</label>
+            <input type="text" id="grocery-notes" placeholder="Brand, low-fat, organic…" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Add to List</button>
+        </form>
+      </section>
+
+      <!-- Suggested from tracker -->
+      <section class="card" id="grocery-suggestions-card">
+        <h2 class="card-title">💡 Suggested Restocks</h2>
+        <p class="muted-text" style="font-size:12px; margin-bottom:10px;">Items expiring or already expired in your tracker.</p>
+        <div id="grocery-suggestions-container">
+          <p class="muted-text">No suggestions yet.</p>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Center: Grocery List -->
+    <section class="items-panel">
+      <div class="items-header">
+        <h2>🛒 My Grocery List</h2>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span id="grocery-count-label" class="items-count-label">0 items</span>
+          <button class="btn btn-sm btn-outline" onclick="clearBoughtItems()">Remove Bought</button>
+          <button class="btn btn-sm btn-danger" onclick="clearAllGroceries()">Clear All</button>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div id="grocery-progress-wrap" class="grocery-progress-wrap hidden">
+        <div class="grocery-progress-bar-track">
+          <div id="grocery-progress-bar" class="grocery-progress-fill"></div>
+        </div>
+        <span id="grocery-progress-label" class="grocery-progress-label">0 / 0 bought</span>
+      </div>
+
+      <div id="grocery-container" class="items-container">
+        <div class="empty-state" id="grocery-empty-state">
+          <div class="empty-icon">🛍️</div>
+          <h3>Your list is empty</h3>
+          <p>Add items using the form, or use the suggested restocks based on your expiring food.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: Summary by Category -->
+    <aside class="recommendations-panel">
+      <section class="card">
+        <h2 class="card-title">📊 List Summary</h2>
+        <div id="grocery-summary-container">
+          <p class="muted-text">Add items to see a category breakdown.</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">🏪 Shopping Tips</h2>
+        <div class="tip-item"><span class="tip-icon">📋</span><span>Group items by category to shop efficiently and avoid backtracking.</span></div>
+        <div class="tip-item"><span class="tip-icon">🔄</span><span>Check your tracker before shopping — you may already have something at home.</span></div>
+        <div class="tip-item"><span class="tip-icon">💰</span><span>Buy in bulk only for items you use regularly before their expiry.</span></div>
+        <div class="tip-item"><span class="tip-icon">🌿</span><span>Buy loose produce instead of pre-packaged to take only what you need.</span></div>
+        <div class="tip-item"><span class="tip-icon">🧾</span><span>Check the expiry date at the store — pick the furthest date for staples.</span></div>
+      </section>
+    </aside>
+
+  </main>
+
+  <!-- Edit Modal -->
+  <div id="edit-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>✏️ Edit Food Item</h3>
+        <button class="modal-close" onclick="closeEditModal()">&times;</button>
+      </div>
+      <form id="edit-form">
+        <input type="hidden" id="edit-id" />
+        <div class="form-group">
+          <label for="edit-name">Food Name</label>
+          <input type="text" id="edit-name" required />
+        </div>
+        <div class="form-group">
+          <label for="edit-category">Category</label>
+          <select id="edit-category">
+            <option value="dairy">🥛 Dairy</option>
+            <option value="meat">🥩 Meat & Poultry</option>
+            <option value="seafood">🐟 Seafood</option>
+            <option value="vegetables">🥦 Vegetables</option>
+            <option value="fruits">🍎 Fruits</option>
+            <option value="grains">🌾 Grains & Bread</option>
+            <option value="beverages">🧃 Beverages</option>
+            <option value="condiments">🫙 Condiments</option>
+            <option value="snacks">🍿 Snacks</option>
+            <option value="frozen">🧊 Frozen Foods</option>
+            <option value="leftovers">🍱 Leftovers</option>
+            <option value="other">📦 Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <div class="input-row">
+            <input type="number" id="edit-quantity" min="0.1" step="0.1" />
+            <select id="edit-unit">
+              <option value="pcs">pcs</option>
+              <option value="kg">kg</option>
+              <option value="g">g</option>
+              <option value="L">L</option>
+              <option value="ml">ml</option>
+              <option value="pack">pack</option>
+              <option value="box">box</option>
+              <option value="bottle">bottle</option>
+              <option value="can">can</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-expiry">Expiry Date</label>
+          <input type="date" id="edit-expiry" required />
+        </div>
+        <div class="form-group">
+          <label for="edit-storage">Storage Location</label>
+          <select id="edit-storage">
+            <option value="fridge">🧊 Fridge</option>
+            <option value="freezer">❄️ Freezer</option>
+            <option value="pantry">🗄️ Pantry</option>
+            <option value="counter">🍽️ Counter</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-notes">Notes</label>
+          <input type="text" id="edit-notes" />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Recipe Detail Modal -->
+  <div id="recipe-modal" class="modal-overlay hidden">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h3 id="recipe-modal-title">Recipe Details</h3>
+        <button class="modal-close" onclick="closeRecipeModal()">&times;</button>
+      </div>
+      <div id="recipe-modal-body" class="recipe-modal-body"></div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script src="grocery.js"></script>
+</body>
+</html>

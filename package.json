@@ -1,0 +1,13 @@
+{
+  "name": "smart-expiry-tracker",
+  "version": "1.0.0",
+  "description": "Smart Expiry Date Tracker with Food Recommendations",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx live-server --port=3000"
+  },
+  "keywords": ["expiry", "food", "tracker", "recommendations"],
+  "author": "",
+  "license": "MIT"
+}
